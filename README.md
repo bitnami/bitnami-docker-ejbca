@@ -143,7 +143,7 @@ You can also do this with a minor change to the [`docker-compose.yml`](https://g
 # Configuration
 
 The EJBCA instance can be customized by specifying environment variables on the first run. The following environment variables are available:
-
+- `EJBCA_AJP_PORT_NUMBER`: AJP port number. Defauls to `8009`.
 - `EJBCA_HTTP_PORT_NUMBER`: HTTP port number. Defaults to `8080`.
 - `EJBCA_HTTPS_PORT_NUMBER`: HTTPS port number. Default to `8443`.
 - `EJBCA_HTTPS_ADVERTISED_PORT_NUMBER`: Port number used in the rendered URLs for the admistrator login. Default to `8443`.
@@ -159,6 +159,12 @@ The EJBCA instance can be customized by specifying environment variables on the 
 - `JAVA_OPTS`: Java options. Defaults to `-Xms2048m -Xmx2048m -XX:MetaspaceSize=192M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Dhibernate.dialect=org.hibernate.dialect.MySQL5Dialect -Dhibernate.dialect.storage_engine=innodb`.
 - `EJBCA_SERVER_CERT_FILE`: User provided keystore file. No defaults.
 - `EJBCA_SERVER_CERT_PASSWORD`: User provided keystore file password. No defaults.
+- `EJBCA_SMTP_HOST`: SMTP Email server address. Defaults to `localhost`.
+- `EJBCA_SMTP_PORT`: SMTP Email server port. Defaults to `25`.
+- `EJBCA_SMTP_FROM_ADDRESS`: SMTP from email address. Defaults to `ejbca-donotreply@domain.com`.
+- `EJBCA_SMTP_TLS`: SMTP TLS authentication: Defaults to `false`.
+- `EJBCA_SMTP_USERNAME`: SMTP authentication username. No defaults.
+- `EJBCA_SMTP_PASSWORD`: SMTP authentication password. No defaults.
 
 # Logging
 
@@ -169,6 +175,14 @@ $ docker logs ejbca
 ```
 
 You can configure the containers [logging driver](https://docs.docker.com/engine/admin/logging/overview/) using the `--log-driver` option if you wish to consume the container logs differently. In the default configuration docker uses the `json-file` driver.
+
+
+# Custom scripts
+
+The Bitnami EJBCA Docker image contains functions to execute any shell scripts after startup. These scripts are executed during the initalization of the EJBCA Wildfly installation.
+
+You can add custom script into the `/bitnami/custom-scripts` directory. All files in the directory will be executed using bash.
+
 
 # Maintenance
 

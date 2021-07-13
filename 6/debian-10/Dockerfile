@@ -33,7 +33,7 @@ ENV ALLOW_EMPTY_PASSWORD="no" \
     MYSQL_CLIENT_SSL_CA_FILE="" \
     PATH="/opt/bitnami/java/bin:/opt/bitnami/wildfly/bin:/opt/bitnami/mysql/bin:/opt/bitnami/common/bin:/opt/bitnami/ejbca/bin:$PATH"
 
-EXPOSE 8080 9990
+EXPOSE 8080 9990 8009
 
 USER 1001
 ENTRYPOINT [ "/opt/bitnami/scripts/ejbca/entrypoint.sh" ]

@@ -136,6 +136,17 @@ ejbca_configure_wildfly() {
     ejbca_wildfly_command ':reload'
     wait_for_wildfly
 
+    info "Configure email"
+    ejbca_wildfly_command "/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=ejbca-mail-smtp:add(port=\"${EJBCA_SMTP_PORT}\", host=\"${EJBCA_SMTP_HOST}\")"
+    ejbca_wildfly_command "/subsystem=mail/mail-session=\"java:/EjbcaMail\":add(jndi-name=java:/EjbcaMail, from=${EJBCA_SMTP_FROM_ADDRESS})"
+    if [[ ! -z "$EJBCA_SMTP_USERNAME" ]]; then
+        ejbca_wildfly_command "/subsystem=mail/mail-session=\"java:/EjbcaMail\"/server=smtp:add(outbound-socket-binding-ref=ejbca-mail-smtp, tls=${EJBCA_SMTP_TLS}, username=\"${EJBCA_SMTP_USERNAME}\", password=\"${EJBCA_SMTP_PASSWORD}\")"
+    else
+        ejbca_wildfly_command "/subsystem=mail/mail-session=\"java:/EjbcaMail\"/server=smtp:add(outbound-socket-binding-ref=ejbca-mail-smtp, tls=${EJBCA_SMTP_TLS})"
+    fi
+    ejbca_wildfly_command ':reload'
+    wait_for_wildfly
+
     info "Configure redirection"
     ejbca_wildfly_command '/subsystem=undertow/server=default-server/host=default-host/location="\/":remove()'
     ejbca_wildfly_command '/subsystem=undertow/configuration=handler/file=welcome-content:remove()'
@@ -180,10 +191,11 @@ ejbca_configure_wildfly_https() {
     ejbca_wildfly_command '/subsystem=elytron/server-ssl-context=httpspub:add(key-manager=httpsKM,protocols=["TLSv1.2"])'
     ejbca_wildfly_command '/subsystem=elytron/server-ssl-context=httpspriv:add(key-manager=httpsKM,protocols=["TLSv1.2"],trust-manager=httpsTM,need-client-auth=false,authentication-optional=true,want-client-auth=true)'
 
-    info "Add HTTP(S) Listeners"
+    info "Add HTTP(S) and AJP Listeners"
     ejbca_wildfly_command '/subsystem=undertow/server=default-server/http-listener=http:add(socket-binding="http", redirect-socket="httpspriv")'
     ejbca_wildfly_command '/subsystem=undertow/server=default-server/https-listener=httpspub:add(socket-binding="httpspub", ssl-context="httpspub", max-parameters=2048)'
     ejbca_wildfly_command '/subsystem=undertow/server=default-server/https-listener=httpspriv:add(socket-binding="httpspriv", ssl-context="httpspriv", max-parameters=2048)'
+    ejbca_wildfly_command "/subsystem=undertow/server=default-server/ajp-listener=ajp-listener:add(socket-binding=ajp, scheme=https, enabled=true)"
     ejbca_wildfly_command ':reload'
     wait_for_wildfly
 
@@ -235,6 +247,16 @@ ejbca_start_wildfly_bg() {
 ejbca_stop_wildfly() {
     info "Stopping wildfly..."
     ejbca_wildfly_command ":shutdown"
+}
+
+ejbca_custom_scripts() {
+    info "Running custom scripts..."
+    FILES=/bitnami/custom-scripts/*
+    for f in ${FILES}
+    do
+        echo "Executing file: ${f}"
+        bash "${f}"
+    done
 }
 
 #######################
@@ -605,6 +627,8 @@ ejbca_initialize() {
     fi
 
     ejbca_configure_wildfly_https
+
+    ejbca_custom_scripts
 
     ejbca_stop_wildfly
 
